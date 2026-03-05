@@ -31,41 +31,50 @@ export async function getAllList() {
   return await db.getAllAsync(`SELECT * FROM shop_list ORDER BY id DESC`);
 }
 
-export async function createList(title: string, label: string) {
-  return await db.runAsync(
-    `INSERT INTO shopping_lists (title, label) VALUES (?, ?)`,
-    [title, label],
+export async function getItemsById(shop_list_id: number) {
+  return await db.getAllAsync(
+    `SELECT * FROM item_list where shop_list_id = ? ORDER BY id DESC`,
+    [shop_list_id],
   );
 }
+export async function getShopListById(shop_list_id: number) {
+  return await db.getAllAsync(`SELECT * FROM shop_list where id = ?`, [
+    shop_list_id,
+  ]);
+}
 
-export async function getItemsById(shop_list_id: number) {
-  return await db.runAsync(`SELECT * FROM item_list where shop_list_id = ? ORDER BY id DESC`, [shop_list_id]);
+export async function addList(title: string, label: string) {
+  return await db.runAsync(
+    `INSERT INTO shop_list (title, label) VALUES (?, ?)`,
+    [title, label],
+  );
 }
 
 export async function addItem(
   shop_list_id: number,
   name: string,
   price: number,
-  quantity: number
+  quantity: number,
 ) {
   return await db.runAsync(
     "INSERT INTO item_list (shop_list_id, name, price, quantity) VALUES (?, ?, ?, ?)",
-    [shop_list_id, name, price, quantity]
+    [shop_list_id, name, price, quantity],
   );
 }
 
 export async function toggleItem(id: number, checked: number) {
-  return await db.runAsync(
-    "UPDATE item_list SET checked = ? WHERE id = ?",
-    [checked, id]
-  );
+  return await db.runAsync("UPDATE item_list SET checked = ? WHERE id = ?", [
+    checked,
+    id,
+  ]);
+}
+
+export async function deleteList(id: number) {
+  return await db.runAsync("DELETE FROM shop_list WHERE id = ?", [id]);
 }
 
 export async function deleteItem(id: number) {
-  return await db.runAsync(
-    "DELETE FROM item_list WHERE id = ?",
-    [id]
-  );
+  return await db.runAsync("DELETE FROM item_list WHERE id = ?", [id]);
 }
 
 export default db;
