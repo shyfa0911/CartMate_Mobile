@@ -176,7 +176,6 @@ export default function HomePage() {
                 }}
               >
                 <Card.Content>
-                  {/* Header dengan judul dan tombol */}
                   <View
                     style={{
                       flexDirection: "row",
@@ -235,11 +234,11 @@ export default function HomePage() {
                     </View>
                   </View>
 
-                  {/* Stats Row */}
                   <View
                     style={{
                       flexDirection: "row",
                       justifyContent: "space-between",
+                      alignContent: "center",
                     }}
                   >
                     <View>
@@ -254,20 +253,6 @@ export default function HomePage() {
                         }}
                       >
                         {item.item_count || 0}
-                      </Text>
-                    </View>
-                    <View>
-                      <Text style={{ color: "#999", fontSize: 12 }}>
-                        Selesai
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 18,
-                          fontWeight: "bold",
-                          color: colors.citrusZest,
-                        }}
-                      >
-                        {item.checked_count || 0}
                       </Text>
                     </View>
                     <View>

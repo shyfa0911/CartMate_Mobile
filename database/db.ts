@@ -28,7 +28,24 @@ export async function initDatabase() {
 }
 
 export async function getAllList() {
-  return await db.getAllAsync(`SELECT * FROM shop_list ORDER BY id DESC`);
+  try {
+    const result = await db.getAllAsync(`
+      SELECT 
+        shop_list.*,
+        COUNT(item_list.id) as item_count,
+        COALESCE(SUM(item_list.price * item_list.quantity), 0) as total
+      FROM shop_list
+      LEFT JOIN item_list ON shop_list.id = item_list.shop_list_id
+      GROUP BY shop_list.id
+      ORDER BY shop_list.id DESC
+    `);
+    
+    console.log("All lists with totals:", result);
+    return result;
+  } catch (error) {
+    console.error("Error getting all lists:", error);
+    return [];
+  }
 }
 
 export async function getItemsById(shop_list_id: number) {

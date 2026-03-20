@@ -7,9 +7,10 @@ import { ItemType, ShopListType } from "@/database/shop_types";
 import {
   addItem,
   addList,
+  deleteItem,
+  deleteList,
   getItemsById,
   getShopListById,
-  deleteItem,
 } from "../database/db";
 
 const colors = {
@@ -122,20 +123,45 @@ export default function AddList() {
   };
 
   const removeItem = async (index: number) => {
-    if (items.length > 1) {
-      const itemToRemove = items[index];
-      
-      // Kalau ini item yang sudah ada di database (punya id), hapus dari database
-      if (isEditMode && itemToRemove.id) {
-        try {
-          await deleteItem(itemToRemove.id);
-        } catch (error) {
-          console.error("Error deleting item:", error);
-        }
+    // Hapus item berdasarkan index, minimal harus ada 1 item
+    const itemToRemove = items[index];
+
+    // Kalau ini item yang sudah ada di database (punya id), hapus dari database
+    if (isEditMode && itemToRemove.id) {
+      try {
+        await deleteItem(itemToRemove.id);
+      } catch (error) {
+        console.error("Error deleting item:", error);
       }
-      
-      setItems((prev) => prev.filter((_, i) => i !== index));
     }
+
+    // Hapus dari state
+    setItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Fungsi untuk menghapus seluruh list
+  const handleDeleteList = () => {
+    Alert.alert(
+      "Hapus List",
+      "Apakah Anda yakin ingin menghapus list ini? Semua item di dalamnya akan ikut terhapus.",
+      [
+        { text: "Batal", style: "cancel" },
+        {
+          text: "Hapus",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteList(Number(id));
+              Alert.alert("Berhasil!", "List berhasil dihapus", [
+                { text: "OK", onPress: () => router.back() },
+              ]);
+            } catch (error) {
+              Alert.alert("Error", "Gagal menghapus list");
+            }
+          },
+        },
+      ],
+    );
   };
 
   const handleSave = async () => {
@@ -149,7 +175,7 @@ export default function AddList() {
         // TODO: Implement update list (title dan label)
         // Untuk sekarang, kita handle update items dulu
         // Note: Perlu buat fungsi updateList di db.ts
-        
+
         // Handle items yang baru ditambahkan (tanpa id)
         for (let item of items) {
           if (item.name.trim() !== "" && !item.id) {
@@ -161,7 +187,7 @@ export default function AddList() {
           // }
         }
 
-        Alert.alert("Berhasil! 💖", "List berhasil diupdate", [
+        Alert.alert("Berhasil!", "List berhasil diupdate", [
           { text: "OK", onPress: () => router.back() },
         ]);
       } else {
@@ -174,7 +200,7 @@ export default function AddList() {
           }
         }
 
-        Alert.alert("Berhasil! 💖", "List berhasil disimpan", [
+        Alert.alert("Berhasil!", "List berhasil disimpan", [
           { text: "OK", onPress: () => router.back() },
         ]);
       }
@@ -197,6 +223,17 @@ export default function AddList() {
           headerStyle: { backgroundColor: colors.amalfiTile },
           headerTintColor: "white",
           headerTitleStyle: { fontWeight: "bold" },
+          // Tambahkan tombol hapus di header untuk mode edit
+          headerRight: () =>
+            isEditMode ? (
+              <IconButton
+                icon="delete"
+                iconColor="white"
+                size={24}
+                onPress={handleDeleteList}
+                style={{ marginRight: 8 }}
+              />
+            ) : null,
         }}
       />
 
@@ -205,7 +242,6 @@ export default function AddList() {
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         <View style={{ paddingHorizontal: 20 }}>
-          {/* Card List Information */}
           <Card
             style={{
               borderRadius: 20,
@@ -328,6 +364,7 @@ export default function AddList() {
                     />
                   </View>
 
+                  {/* Tombol X untuk menghapus item - SEKARANG TERSEDIA UNTUK SEMUA MODE (edit DAN baru) */}
                   {items.length > 1 && (
                     <IconButton
                       icon="close"
@@ -471,8 +508,6 @@ export default function AddList() {
           left: 0,
           right: 0,
           backgroundColor: "white",
-          borderTopWidth: 2,
-          borderTopColor: colors.creamGelato,
           paddingHorizontal: 20,
           paddingTop: 15,
           paddingBottom: 25,
@@ -527,8 +562,6 @@ export default function AddList() {
             paddingVertical: 8,
             backgroundColor: colors.citrusZest,
           }}
-          labelStyle={{ color: "white", fontWeight: "bold", fontSize: 16 }}
-          icon="check"
         >
           {isEditMode ? "Update List" : "Simpan List"}
         </Button>
