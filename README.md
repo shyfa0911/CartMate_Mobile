@@ -1,6 +1,6 @@
 # CartMate 
 
-CartMate adalah aplikasi mobile berbasis React Native dan Expo yang berfungsi sebagai manajemen daftar belanja (*groceries list*) sekaligus pengelola tugas (*task manager*) belanjaan secara praktis dan modern.
+CartMate adalah aplikasi mobile berbasis React Native dan Expo yang berfungsi sebagai manajemen daftar belanja (*groceries list*) yang praktis dan modern.
 
 ## Fitur Utama
 - **Buat & Edit List:** Menambah daftar belanja baru beserta label kategori (opsional).
