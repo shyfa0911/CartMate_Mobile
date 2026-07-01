@@ -1,6 +1,6 @@
 import { deleteList, getAllList } from "@/database/db";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import { Alert, FlatList, View } from "react-native";
 import { Card, FAB, IconButton, Searchbar, Text } from "react-native-paper";
 
@@ -20,9 +20,11 @@ export default function HomePage() {
     setList(data);
   }
 
-  useEffect(() => {
-    loadList();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadList();
+    }, []),
+  );
 
   const filteredList = list.filter((item) =>
     item.title.toLowerCase().includes(search.toLowerCase()),

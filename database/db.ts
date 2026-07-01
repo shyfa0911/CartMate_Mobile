@@ -94,4 +94,18 @@ export async function deleteItem(id: number) {
   return await db.runAsync("DELETE FROM item_list WHERE id = ?", [id]);
 }
 
+export async function updateList(id: number, title: string, label: string | null) {
+  return await db.runAsync(
+    "UPDATE shop_list SET title = ?, label = ? WHERE id = ?",
+    [title, label, id]
+  );
+}
+
+export async function updateItemInDB(id: number, name: string, price: number, quantity: number) {
+  return await db.runAsync(
+    "UPDATE item_list SET name = ?, price = ?, quantity = ? WHERE id = ?",
+    [name, price, quantity, id]
+  );
+}
+
 export default db;

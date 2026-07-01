@@ -1,16 +1,31 @@
 import {
+  addItem,
+  deleteItem,
   getItemsById,
   getShopListById,
   toggleItem,
-  deleteItem,
-  deleteList,
-  addItem,
 } from "@/database/db";
 import { ItemType, ShopListType } from "@/database/shop_types";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, FlatList, View, Modal, ScrollView } from "react-native";
-import { Card, Checkbox, FAB, IconButton, Text, TextInput, Button } from "react-native-paper";
+import {
+  Alert,
+  FlatList,
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import {
+  Button,
+  Card,
+  Checkbox,
+  FAB,
+  IconButton,
+  Text,
+  TextInput,
+} from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const colors = {
   citrusZest: "#FAA62B",
@@ -45,6 +60,7 @@ export default function ListDetail() {
     price: 0,
     quantity: 1,
   });
+  const insets = useSafeAreaInsets();
 
   async function loadData() {
     try {
@@ -114,29 +130,6 @@ export default function ListDetail() {
     ]);
   };
 
-  const handleDeleteList = async () => {
-    Alert.alert(
-      "Hapus List",
-      `Yakin mau hapus "${shopList?.title}"? Semua item akan ikut terhapus.`,
-      [
-        { text: "Batal", style: "cancel" },
-        {
-          text: "Hapus",
-          onPress: async () => {
-            try {
-              await deleteList(Number(id));
-              Alert.alert("Sukses", "List berhasil dihapus");
-              router.back();
-            } catch (error) {
-              Alert.alert("Error", "Gagal menghapus list");
-            }
-          },
-          style: "destructive",
-        },
-      ],
-    );
-  };
-
   const handleAddItem = async () => {
     if (!newItem.name.trim()) {
       Alert.alert("Error", "Nama item tidak boleh kosong");
@@ -144,13 +137,8 @@ export default function ListDetail() {
     }
 
     try {
-      await addItem(
-        Number(id),
-        newItem.name,
-        newItem.price,
-        newItem.quantity
-      );
-      
+      await addItem(Number(id), newItem.name, newItem.price, newItem.quantity);
+
       setNewItem({ name: "", price: 0, quantity: 1 });
       setModalVisible(false);
       await loadData();
@@ -174,7 +162,9 @@ export default function ListDetail() {
   const renderContent = () => {
     if (loading) {
       return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <Text>Loading...</Text>
         </View>
       );
@@ -182,7 +172,14 @@ export default function ListDetail() {
 
     if (!shopList) {
       return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingTop: insets.top,
+          }}
+        >
           <Text style={{ marginTop: 10, color: "#999" }}>
             List tidak ditemukan
           </Text>
@@ -205,6 +202,7 @@ export default function ListDetail() {
             padding: 20,
             borderRadius: 12,
             elevation: 2,
+            paddingTop: insets.top,
           }}
         >
           <View style={{ marginBottom: 16 }}>
@@ -224,22 +222,42 @@ export default function ListDetail() {
             )}
           </View>
 
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <View
+            style={{ flexDirection: "row", justifyContent: "space-between" }}
+          >
             <View>
               <Text style={{ color: "#999", fontSize: 12 }}>Total Items</Text>
-              <Text style={{ fontSize: 18, fontWeight: "bold", color: colors.amalfiTile }}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: "bold",
+                  color: colors.amalfiTile,
+                }}
+              >
                 {items.length}
               </Text>
             </View>
             <View>
               <Text style={{ color: "#999", fontSize: 12 }}>Selesai</Text>
-              <Text style={{ fontSize: 18, fontWeight: "bold", color: colors.citrusZest }}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: "bold",
+                  color: colors.citrusZest,
+                }}
+              >
                 {checkedItems}
               </Text>
             </View>
             <View>
               <Text style={{ color: "#999", fontSize: 12 }}>Total</Text>
-              <Text style={{ fontSize: 16, fontWeight: "bold", color: colors.amalfiTile }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  color: colors.amalfiTile,
+                }}
+              >
                 {formatCurrency(total)}
               </Text>
             </View>
@@ -298,7 +316,9 @@ export default function ListDetail() {
               }}
             >
               <Card.Content>
-                <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+                <View
+                  style={{ flexDirection: "row", alignItems: "flex-start" }}
+                >
                   <Checkbox
                     status={item.checked ? "checked" : "unchecked"}
                     onPress={() => handleToggle(item.id!, item.checked)}
@@ -310,7 +330,9 @@ export default function ListDetail() {
                       style={{
                         fontSize: 16,
                         fontWeight: "500",
-                        textDecorationLine: item.checked ? "line-through" : "none",
+                        textDecorationLine: item.checked
+                          ? "line-through"
+                          : "none",
                         color: item.checked ? "#999" : colors.amalfiTile,
                         marginBottom: 4,
                       }}
@@ -318,12 +340,30 @@ export default function ListDetail() {
                       {item.name}
                     </Text>
 
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
                       <Text style={{ color: "#666", fontSize: 13 }}>
                         {item.quantity} x {formatCurrency(item.price)}
                       </Text>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                        <Text style={{ fontSize: 14, fontWeight: "bold", color: colors.amalfiTile }}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: "bold",
+                            color: colors.amalfiTile,
+                          }}
+                        >
                           {formatCurrency(item.price * item.quantity)}
                         </Text>
                         <IconButton
@@ -347,7 +387,7 @@ export default function ListDetail() {
           style={{
             position: "absolute",
             right: 20,
-            bottom: 30,
+            bottom: 12 + insets.bottom,
             backgroundColor: colors.citrusZest,
             borderRadius: 16,
             elevation: 8,
@@ -364,9 +404,23 @@ export default function ListDetail() {
     <View style={{ flex: 1, backgroundColor: "#F5F7FA" }}>
       <Stack.Screen
         options={{
-          title: shopList?.title || "Detail List",
-          headerStyle: { backgroundColor: colors.amalfiTile },
-          headerTintColor: "white",
+          title: "Detail List",
+          headerShown: true,
+          headerStyle: { backgroundColor: "#2E5AA7" },
+          headerTintColor: "#fff",
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => console.log("Tombol Edit Ditekan")}
+              style={{ marginRight: 10 }}
+            >
+              <IconButton
+                icon="pencil"
+                size={22}
+                iconColor="white"
+                onPress={() => router.push(`/addnewlist?id=${id}`)}
+              />
+            </TouchableOpacity>
+          ),
         }}
       />
 
@@ -379,34 +433,63 @@ export default function ListDetail() {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={{
-          flex: 1,
-          justifyContent: "flex-end",
-          backgroundColor: "rgba(0,0,0,0.5)",
-        }}>
-          <View style={{
-            backgroundColor: "white",
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            padding: 20,
-            maxHeight: "80%",
-          }}>
-            <View style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 20,
-            }}>
-              <Text style={{
-                fontSize: 20,
-                fontWeight: "bold",
-                color: colors.amalfiTile,
-              }}>
-                Tambah Item
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "flex-end",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              borderTopLeftRadius: 28, // Radius lebih smooth ala iOS/Modern Android
+              borderTopRightRadius: 28,
+              paddingHorizontal: 24,
+              paddingTop: 8,
+              paddingBottom: insets.bottom > 0 ? insets.bottom + 12 : 24,
+              maxHeight: "85%",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: -4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 12,
+              elevation: 24,
+            }}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 5,
+                backgroundColor: "#E0E0E0",
+                borderRadius: 3,
+                alignSelf: "center",
+                marginBottom: 16,
+              }}
+            />
+
+            {/* Header Modal */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 20,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 22,
+                  fontWeight: "bold",
+                  color: colors.amalfiTile,
+                }}
+              >
+                Tambah Item Baru
               </Text>
               <IconButton
                 icon="close"
                 size={24}
+                iconColor="#757575"
+                style={{ margin: 0, backgroundColor: "#F5F5F5" }}
                 onPress={() => {
                   setModalVisible(false);
                   setNewItem({ name: "", price: 0, quantity: 1 });
@@ -414,77 +497,107 @@ export default function ListDetail() {
               />
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Card style={{
-                borderRadius: 12,
-                backgroundColor: "white",
-                elevation: 1,
-                marginBottom: 20,
-              }}>
-                <Card.Content>
-                  <View style={{ marginBottom: 16 }}>
-                    <TextInput
-                      label="Nama Item"
-                      value={newItem.name}
-                      onChangeText={(text) => setNewItem({...newItem, name: text})}
-                      mode="outlined"
-                      outlineColor="#E0E0E0"
-                      activeOutlineColor={colors.amalfiTile}
-                      style={{ backgroundColor: "white" }}
-                    />
-                  </View>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 8 }}
+            >
+              <Card
+                elevation={0}
+                style={{
+                  borderRadius: 16,
+                  backgroundColor: "white",
+                  borderWidth: 1,
+                  borderColor: "#F0F0F0",
+                  marginBottom: 24,
+                }}
+              >
+                <Card.Content style={{ gap: 16, paddingVertical: 16 }}>
+                  {/* Input Nama Item */}
+                  <TextInput
+                    label="Nama Item"
+                    placeholder="Misal: Susu Kotak"
+                    value={newItem.name}
+                    onChangeText={(text) =>
+                      setNewItem({ ...newItem, name: text })
+                    }
+                    mode="outlined"
+                    outlineColor="#E0E0E0"
+                    activeOutlineColor={colors.amalfiTile}
+                    style={{ backgroundColor: "white" }}
+                  />
 
-                  <View style={{ marginBottom: 16 }}>
-                    <TextInput
-                      label="Harga"
-                      value={newItem.price.toString()}
-                      onChangeText={(text) => 
-                        setNewItem({...newItem, price: Number(text) || 0})
-                      }
-                      keyboardType="numeric"
-                      mode="outlined"
-                      outlineColor="#E0E0E0"
-                      activeOutlineColor={colors.amalfiTile}
-                      style={{ backgroundColor: "white" }}
-                    />
-                  </View>
+                  {/* Input Harga */}
+                  <TextInput
+                    label="Harga Satuan"
+                    placeholder="0"
+                    value={newItem.price === 0 ? "" : newItem.price.toString()}
+                    onChangeText={(text) =>
+                      setNewItem({ ...newItem, price: Number(text) || 0 })
+                    }
+                    keyboardType="numeric"
+                    left={<TextInput.Affix text="Rp " />}
+                    mode="outlined"
+                    outlineColor="#E0E0E0"
+                    activeOutlineColor={colors.amalfiTile}
+                    style={{ backgroundColor: "white" }}
+                  />
 
-                  <View>
-                    <Text style={{ marginBottom: 8, color: "#666" }}>
-                      Jumlah
-                    </Text>
-                    <View style={{
+                  {/* Input Jumlah Kuantitas */}
+                  <View
+                    style={{
                       flexDirection: "row",
+                      justifyContent: "space-between",
                       alignItems: "center",
-                      backgroundColor: "#F5F5F5",
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderColor: "#E0E0E0",
-                    }}>
+                      marginTop: 4,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontWeight: "600",
+                        color: "#616161",
+                        fontSize: 15,
+                      }}
+                    >
+                      Jumlah Kuantitas
+                    </Text>
+
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        backgroundColor: "#F5F5F5",
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: "#E0E0E0",
+                        width: 130,
+                        padding: 2,
+                      }}
+                    >
                       <IconButton
                         icon="minus"
                         size={20}
                         onPress={() =>
                           newItem.quantity > 1 &&
-                          setNewItem({...newItem, quantity: newItem.quantity - 1})
+                          setNewItem({
+                            ...newItem,
+                            quantity: newItem.quantity - 1,
+                          })
                         }
                         style={{
                           margin: 0,
                           backgroundColor: "white",
-                          borderRadius: 6,
+                          borderRadius: 10,
                         }}
                         iconColor={colors.amalfiTile}
                       />
-                      <View style={{
-                        flex: 1,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}>
-                        <Text style={{
-                          fontSize: 16,
-                          fontWeight: "bold",
-                          color: colors.amalfiTile,
-                        }}>
+                      <View style={{ flex: 1, alignItems: "center" }}>
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            fontWeight: "bold",
+                            color: colors.amalfiTile,
+                          }}
+                        >
                           {newItem.quantity}
                         </Text>
                       </View>
@@ -492,47 +605,70 @@ export default function ListDetail() {
                         icon="plus"
                         size={20}
                         onPress={() =>
-                          setNewItem({...newItem, quantity: newItem.quantity + 1})
+                          setNewItem({
+                            ...newItem,
+                            quantity: newItem.quantity + 1,
+                          })
                         }
                         style={{
                           margin: 0,
                           backgroundColor: "white",
-                          borderRadius: 6,
+                          borderRadius: 10,
                         }}
                         iconColor={colors.amalfiTile}
                       />
                     </View>
                   </View>
 
-                  <View style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginTop: 20,
-                    paddingTop: 16,
-                    borderTopWidth: 1,
-                    borderTopColor: "#F0F0F0",
-                  }}>
-                    <Text style={{ color: "#666", fontSize: 16 }}>Subtotal:</Text>
-                    <Text style={{
-                      fontSize: 18,
-                      fontWeight: "bold",
-                      color: colors.amalfiTile,
-                    }}>
+                  {/* Subtotal Section */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginTop: 8,
+                      paddingTop: 16,
+                      borderTopWidth: 1,
+                      borderTopColor: "#F5F5F5",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#757575",
+                        fontSize: 14,
+                        fontWeight: "500",
+                      }}
+                    >
+                      Subtotal Item:
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontWeight: "bold",
+                        color: colors.amalfiTile,
+                      }}
+                    >
                       {formatCurrency(newItem.price * newItem.quantity)}
                     </Text>
                   </View>
                 </Card.Content>
               </Card>
 
-              <View style={{ flexDirection: "row", gap: 12, marginBottom: 20 }}>
+              {/* Action Buttons */}
+              <View style={{ flexDirection: "row", gap: 12 }}>
                 <Button
                   mode="outlined"
                   onPress={() => {
                     setModalVisible(false);
                     setNewItem({ name: "", price: 0, quantity: 1 });
                   }}
-                  style={{ flex: 1, borderRadius: 8 }}
+                  style={{
+                    flex: 1,
+                    borderRadius: 12,
+                    borderColor: colors.amalfiTile,
+                    borderWidth: 1,
+                  }}
+                  labelStyle={{ fontWeight: "bold", paddingVertical: 4 }}
                   textColor={colors.amalfiTile}
                 >
                   Batal
@@ -540,11 +676,12 @@ export default function ListDetail() {
                 <Button
                   mode="contained"
                   onPress={handleAddItem}
-                  style={{ 
-                    flex: 1, 
-                    borderRadius: 8,
+                  style={{
+                    flex: 1,
+                    borderRadius: 12,
                     backgroundColor: colors.citrusZest,
                   }}
+                  labelStyle={{ fontWeight: "bold", paddingVertical: 4 }}
                   textColor="white"
                 >
                   Tambah

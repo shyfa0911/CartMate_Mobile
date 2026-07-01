@@ -1,9 +1,9 @@
+import { ItemType, ShopListType } from "@/database/shop_types";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 import { Button, Card, IconButton, Text, TextInput } from "react-native-paper";
-
-import { ItemType, ShopListType } from "@/database/shop_types";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   addItem,
   addList,
@@ -11,6 +11,8 @@ import {
   deleteList,
   getItemsById,
   getShopListById,
+  updateItemInDB,
+  updateList,
 } from "../database/db";
 
 const colors = {
@@ -39,6 +41,7 @@ type ItemFromDB = {
 export default function AddList() {
   const { id } = useLocalSearchParams();
   const isEditMode = !!id;
+  const insets = useSafeAreaInsets();
 
   const [shopList, setShopList] = useState<ShopListType>({
     title: "",
@@ -123,7 +126,6 @@ export default function AddList() {
   };
 
   const removeItem = async (index: number) => {
-    // Hapus item berdasarkan index, minimal harus ada 1 item
     const itemToRemove = items[index];
 
     // Kalau ini item yang sudah ada di database (punya id), hapus dari database
@@ -139,7 +141,6 @@ export default function AddList() {
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Fungsi untuk menghapus seluruh list
   const handleDeleteList = () => {
     Alert.alert(
       "Hapus List",
@@ -172,19 +173,24 @@ export default function AddList() {
 
     try {
       if (isEditMode) {
-        // TODO: Implement update list (title dan label)
-        // Untuk sekarang, kita handle update items dulu
-        // Note: Perlu buat fungsi updateList di db.ts
+        // 1. Jalankan update untuk data utama list (Title & Label)
+        await updateList(Number(id), shopList.title, shopList.label);
 
-        // Handle items yang baru ditambahkan (tanpa id)
+        // 2. Simpan atau update item ke database
         for (let item of items) {
-          if (item.name.trim() !== "" && !item.id) {
-            await addItem(Number(id), item.name, item.price, item.quantity);
+          if (item.name.trim() !== "") {
+            if (item.id) {
+              // Jika item sudah punya ID, update data lamanya
+              await updateItemInDB(
+                item.id,
+                item.name,
+                item.price,
+                item.quantity,
+              );
+            } else {
+              await addItem(Number(id), item.name, item.price, item.quantity);
+            }
           }
-          // Untuk item yang sudah ada, perlu fungsi updateItem
-          // if (item.id) {
-          //   await updateItem(item.id, item.name, item.price, item.quantity);
-          // }
         }
 
         Alert.alert("Berhasil!", "List berhasil diupdate", [
@@ -205,6 +211,7 @@ export default function AddList() {
         ]);
       }
     } catch (error) {
+      console.error("Error saving data:", error);
       Alert.alert("Error", "Gagal menyimpan, coba lagi");
     }
   };
@@ -223,23 +230,12 @@ export default function AddList() {
           headerStyle: { backgroundColor: colors.amalfiTile },
           headerTintColor: "white",
           headerTitleStyle: { fontWeight: "bold" },
-          // Tambahkan tombol hapus di header untuk mode edit
-          headerRight: () =>
-            isEditMode ? (
-              <IconButton
-                icon="delete"
-                iconColor="white"
-                size={24}
-                onPress={handleDeleteList}
-                style={{ marginRight: 8 }}
-              />
-            ) : null,
         }}
       />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
       >
         <View style={{ paddingHorizontal: 20 }}>
           <Card
@@ -281,7 +277,7 @@ export default function AddList() {
 
               <TextInput
                 label="Label (Optional)"
-                value={shopList.label}
+                value={shopList.label || ""}
                 onChangeText={(text) =>
                   setShopList((prev) => ({ ...prev, label: text }))
                 }
@@ -364,7 +360,6 @@ export default function AddList() {
                     />
                   </View>
 
-                  {/* Tombol X untuk menghapus item - SEKARANG TERSEDIA UNTUK SEMUA MODE (edit DAN baru) */}
                   {items.length > 1 && (
                     <IconButton
                       icon="close"
@@ -510,7 +505,8 @@ export default function AddList() {
           backgroundColor: "white",
           paddingHorizontal: 20,
           paddingTop: 15,
-          paddingBottom: 25,
+          // 4. Sesuaikan paddingBottom dengan tinggi tombol bawaan HP
+          paddingBottom: insets.bottom > 0 ? insets.bottom + 10 : 25,
           shadowColor: "#000",
           shadowOffset: { width: 0, height: -3 },
           shadowOpacity: 0.1,
@@ -521,9 +517,9 @@ export default function AddList() {
         <View
           style={{
             backgroundColor: colors.creamGelato,
-            padding: 15,
-            borderRadius: 15,
-            marginBottom: 12,
+            padding: 12,
+            borderRadius: 10,
+            marginBottom: 8,
           }}
         >
           <View
@@ -535,7 +531,7 @@ export default function AddList() {
           >
             <Text
               style={{
-                fontSize: 16,
+                fontSize: 14,
                 color: colors.amalfiTile,
                 fontWeight: "bold",
               }}
@@ -544,7 +540,7 @@ export default function AddList() {
             </Text>
             <Text
               style={{
-                fontSize: 22,
+                fontSize: 16,
                 fontWeight: "bold",
                 color: colors.amalfiTile,
               }}
@@ -558,7 +554,7 @@ export default function AddList() {
           mode="contained"
           onPress={handleSave}
           style={{
-            borderRadius: 15,
+            borderRadius: 12,
             paddingVertical: 8,
             backgroundColor: colors.citrusZest,
           }}
