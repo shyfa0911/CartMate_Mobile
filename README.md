@@ -22,18 +22,18 @@ git clone [https://github.com/shyfa0911/CartMate_Mobile.git](https://github.com/
 cd CartMate
 ```
 
-## Install Dependencies
+## 2. Install Dependencies
 Pastikan kamu sudah menginstal Node.js di laptopmu, lalu jalankan:
 ```bash
 npm install
 ```
 
-## Jalankan Aplikasi
+## 3. Jalankan Aplikasi
 Mulai server Expo Development:
 ```bash
 npx expo start
 ```
 
-## Buka di Perangkat
+## 4. Buka di Perangkat
 - Android/iOS (Fisik): Scan QR Code yang muncul di terminal menggunakan aplikasi Expo Go (bisa diunduh di Play Store/App Store).
 - Emulator: Tekan tombol a pada terminal untuk membuka di Android Emulator, atau i untuk iOS Simulator.
